@@ -28,9 +28,10 @@ func main() {
 	page, err := driver.NewPage()
 	if err != nil {
 		fmt.Println("err2")
-		return
+		log.Fatal(err)
 	}
 
-	page.Navigate("https://example.com")
+	page.Navigate("http://localhost:3000/")
 	fmt.Println(page.Title())
+	page.Screenshot("./screen.jpg")
 }

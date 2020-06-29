@@ -3,21 +3,28 @@ package main
 import (
 	"fmt"
 	"log"
-
+	// "time"
 	"github.com/sclevine/agouti"
+	"os"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 	options := agouti.ChromeOptions(
 		"args", []string{
 			"--headless",
-			"--window-size=1280,800",
+			"--window-size=1440,900",
 			"no-sandbox",
 			"--disable-dev-shm-usage",
 			"--disable-gpu",
 		})
 
 	driver := agouti.ChromeDriver(options)
+	// driver := agouti.ChromeDriver(agouti.Browser("chrome"))
 	defer driver.Stop()
 
 	if err := driver.Start(); err != nil {
@@ -31,7 +38,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	page.Navigate("http://localhost:3000/")
-	fmt.Println(page.Title())
+	page.Navigate(os.Getenv("URL"))
+	keywords := page.FindByID("keywords")
+	keywords.Fill("a")
+	err = page.FindByID("skwr_search").Click()
+	if err != nil {
+		log.Fatal(err)
+	}
 	page.Screenshot("./screen.jpg")
 }

@@ -3,3 +3,5 @@ AutomaticTest.exe
 chromedriver.exe
 
 screen.jpg
+
+.env

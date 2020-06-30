@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
-	// "time"
-	"github.com/sclevine/agouti"
 	"os"
+	"strings"
+
 	"github.com/joho/godotenv"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/sclevine/agouti"
 )
 
 func main() {
@@ -40,10 +42,51 @@ func main() {
 
 	page.Navigate(os.Getenv("URL"))
 	keywords := page.FindByID("keywords")
-	keywords.Fill("a")
+	keywords.Fill("電気")
 	err = page.FindByID("skwr_search").Click()
 	if err != nil {
 		log.Fatal(err)
 	}
+	// list := page.FindByClass("list")
+
+	content, err := page.HTML()
+	// content, err := list.HTML()
+	if err != nil {
+			log.Printf("Failed to get html: %v", err)
+	}
+
+	reader := strings.NewReader(content)
+	doc, _ := goquery.NewDocumentFromReader(reader)
+	href_list := []string{}
+	body_list := []string{}
+	doc.Find("table .column_odd a").Each(func(i int, s *goquery.Selection) {
+		href, _ := s.Attr("href")
+		href = os.Getenv("URL_HEAD") + href
+		href_list = append(href_list, href)
+
+		body := s.Text()
+		body_list = append(body_list, body)
+	})
+	doc.Find("table .column_even a").Each(func(i int, s *goquery.Selection) {
+		href, _ := s.Attr("href")
+		href = os.Getenv("URL_HEAD") + href
+		href_list = append(href_list, href)
+		
+		body := s.Text()
+		body_list = append(body_list, body)
+	})
+	
+	for i, href := range href_list {
+		page.Navigate(href)
+		name := "./" + body_list[i] + ".jpg"
+		page.Screenshot(name)
+		content, err = page.HTML()
+		reader = strings.NewReader(content)
+		doc, _ = goquery.NewDocumentFromReader(reader)
+		fmt.Printf("content: %s\n", content)	
+	}
+
+	fmt.Printf("href_list: %s\n", href_list)
+	fmt.Printf("body_list: %s\n", body_list)
 	page.Screenshot("./screen.jpg")
 }
